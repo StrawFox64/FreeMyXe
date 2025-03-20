@@ -29,6 +29,8 @@ for some.
 * Displays CPU key front-and-center. Write that down!
 * Allows unsigned content (homebrew, like XeXMenu) to be launched and loaded
   from the dashboard.
+* Allows devkit-signed and encrypted XEX files to launch without needing to be
+  patched first.
 * Lets homebrew access the hypervisor and CPU key as they would be able to on
   a modded console. (useful for Simple 360 NAND Flasher, XeLLLaunch, etc)
 * Allows more homebrew be able to be launched without erroring back to
