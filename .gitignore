@@ -1,6 +1,7 @@
 build/
 out/
 package/
+extras/LaunchDashlaunch
 *.exe
 *.xex
 *.dll

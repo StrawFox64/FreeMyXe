@@ -1,1 +1,1 @@
-#define FREEMYXE_VERSION L"beta4"
+#define FREEMYXE_VERSION L"beta-dev"
