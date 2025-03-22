@@ -25,7 +25,7 @@ LocalisationMessages_t english = {
 
 // translation provided by lexd0g
 LocalisationMessages_t spanish = {
-    L"A punto de empezar a parchear el hipervisor y el kernel...\n\nLa clave de tu CPU es:\n%S\n\nEscr\u00EDbela y mantela segura!",
+    L"A punto de empezar a parchear el hipervisor y el kernel...\n\nLa clave de tu CPU es:\n%S\n\nEscr\u00EDbela y mantenla segura!",
     L"Vale",
     L"Yupi!",
     L"Lanzar XeLL en su lugar",
