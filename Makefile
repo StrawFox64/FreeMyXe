@@ -20,20 +20,20 @@ TOOLPATH := $(XEDK)/bin/win32
 COMPILER := "$(TOOLPATH)/cl.exe"
 LINKER := "$(TOOLPATH)/link.exe"
 IMAGEXEX := "$(TOOLPATH)/imagexex.exe"
-XEXTOOL := $(XEXTOOL)/XexTool.exe
+XEXTOOL := XexTool.exe
 # include directories
-INCLUDES := "$(XEDK)/include/xbox" 
+INCLUDES := "$(XEDK)/include/xbox"
 # library directories
 LIBDIR := "$(XEDK)/lib/xbox"
 # library includes
-LIBS := xapilib.lib xboxkrnl.lib 
+LIBS := xapilib.lib xboxkrnl.lib
 # compiler flags
 CFLAGS := -c -Zi -nologo -W3 -WX- -Ox -Os -D _XBOX -D RB3E_XBOX $(patsubst %,-D %,$(DEFINES)) \
 			-GF -Gm- -MT -GS- -Gy -fp:fast -fp:except- -Zc:wchar_t -Zc:forScope \
 			-GR- -openmp- -FI"$(XEDK)/include/xbox/xbox_intellisense_platform.h" \
-			-Fd"$(BUILD)/" -I "$(INC_DIR)"
+			-Fd"$(BUILD)/" -I"$(INC_DIR)" -I"$(INCLUDES)"
 # linker flags
-LFLAGS := -ERRORREPORT:PROMPT -INCREMENTAL:NO -NOLOGO $(LIBS) \
+LFLAGS := -ERRORREPORT:PROMPT -INCREMENTAL:NO -NOLOGO /LIBPATH:"$(LIBDIR)" $(LIBS) \
 			-MANIFESTUAC:"level='asInvoker' uiAccess='false'" -DEBUG \
 			-STACK:"262144","262144" -OPT:REF -OPT:ICF -TLBID:1 -RELEASE \
 			-XEX:NO
@@ -43,25 +43,26 @@ XEXFLAGS := -nologo -config:"xex.xml"
 XEXTOOLFLAGS := -e e -c c -m r -r a
 # =================
 
-.PHONY: all
+.PHONY: all clean
+
 all: $(OUTNAME).xex
 
-.PHONY: clean
 clean:
-	@rm -rf $(wildcard $(BUILD) $(OUTPUT))
-	@rm -f $(OUTNAME)
+	@rd /s /q "$(BUILD)" 2>nul || del /q "$(BUILD)" 2>nul
+	@del /q "$(OUTNAME).xex" "$(OUTNAME)" 2>nul || exit 0
 
 $(OUTNAME).xex: $(BUILD)/$(OUTNAME).exe
-	@echo "Creating XEX..."
-	@mkdir -p $(@D)
+	@echo Creating XEX...
+	@mkdir $(dir $@) 2>nul || rem
 	@$(WINDOWS_SHIM) $(IMAGEXEX) $(XEXFLAGS) -out:"$@" "$^"
 	@$(WINDOWS_SHIM) $(XEXTOOL) $(XEXTOOLFLAGS) $@
 
 $(BUILD)/$(OUTNAME).exe: $(OBJECTS)
-	@echo "Linking EXE..."
-	@mkdir -p $(@D)
-	@LIB=$(LIBDIR) $(WINDOWS_SHIM) $(LINKER) $(LFLAGS) -OUT:"$@" -PDB:"$(BUILD)/$(OUTNAME).pdb" -IMPLIB:"$(BUILD)/$(OUTNAME)" $^
+	@echo Linking EXE...
+	@mkdir $(dir $@) 2>nul || rem
+	@set LIB=$(LIBDIR) $(WINDOWS_SHIM) && $(LINKER) $(LFLAGS) -OUT:"$@" -PDB:"$(BUILD)/$(OUTNAME).pdb" -IMPLIB:"$(BUILD)/$(OUTNAME)" $^
 
 $(BUILD)/%.obj: $(SRC_DIR)/%.c
-	@mkdir -p $(@D)
-	@INCLUDE=$(INCLUDES) $(WINDOWS_SHIM) $(COMPILER) $(CFLAGS) -Fo"$@" -TC $<
+	@mkdir $(BUILD) 2>nul || rem
+	@mkdir $(dir $@) 2>nul || rem
+	@set INCLUDE=$(INCLUDES) $(WINDOWS_SHIM) && $(COMPILER) $(CFLAGS) -Fo"$@" -TC $<
