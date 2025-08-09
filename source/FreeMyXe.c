@@ -200,6 +200,20 @@ void LaunchXell()
         HypervisorExecute(0x800000001c000000, xell_buffer, sizeof(xell_buffer));
 }
 
+void LaunchAurora()
+{
+	int aurora_file = FSOpenFile("USB0:\\Aurora\\Aurora.xex");
+	// check Aurora in USB1
+	if (aurora_file == -1) { aurora_file = FSOpenFile("USB1:\\Aurora\\Aurora.xex"); }
+	// check Aurora in HDD1
+	if (aurora_file == -1) { aurora_file = FSOpenFile("HDD1:\\Aurora\\Aurora.xex"); }
+	// fail Aurora
+	if (aurora_file == -1) {
+		DbgPrint("Failed to find Aurora.xex!\n");
+		return;
+	}
+}
+
 uint64_t returnTrue = (((uint64_t)LI(3, 1)) << 32) | (BLR);
 uint64_t returnZero = (((uint64_t)LI(3, 0)) << 32) | (BLR);
 
@@ -210,6 +224,7 @@ void __cdecl main()
     // thanks libxenon!
     uint8_t rol_led_buf[16] = {0x99,0x00,0x00,0,0,0,0,0,0,0,0,0,0,0,0,0};
     int has_xell = 0;
+	int has_aurora = 0;
 
     memset(cpu_key, 0, sizeof(cpu_key));
 
@@ -239,6 +254,9 @@ void __cdecl main()
 
     // check if we have a xell file
     has_xell = FSFileExists("GAME:\\xell-1f.bin") || FSFileExists("GAME:\\xell-gggggg.bin") || FSFileExists("GAME:\\xell-2f.bin");
+
+	// check if we have a Aurora file
+	has_aurora = FSFileExists("USB0:\\Aurora\\Aurora.xex") || FSFileExists("USB1:\\Aurora\\Aurora.xex") || FSFileExists("HDD1:\\Aurora\\Aurora.xex");
 
     DbgPrint("CPU key: %s\n", cpu_key_string);
 
@@ -287,21 +305,24 @@ void __cdecl main()
 
     buttons[0] = currentLocalisation->ok;
 
-    wsprintfW(dialog_text_buffer, currentLocalisation->about_to_patch, cpu_key_string);
+	if (has_aurora == 0) {
 
-    if (has_xell)
-    {
-        int pick_result = MessageBoxMulti(dialog_text_buffer, currentLocalisation->ok, currentLocalisation->launch_xell_instead);
-        if (pick_result == 1)
-        {
-            LaunchXell();
-            MessageBox(currentLocalisation->failed_xell_launch);
-        }
-    }
-    else
-    {
-        MessageBox(dialog_text_buffer);
-    }
+		wsprintfW(dialog_text_buffer, currentLocalisation->about_to_patch, cpu_key_string);
+
+		if (has_xell)
+		{
+			int pick_result = MessageBoxMulti(dialog_text_buffer, currentLocalisation->ok, currentLocalisation->launch_xell_instead);
+			if (pick_result == 1)
+			{
+				LaunchXell();
+				MessageBox(currentLocalisation->failed_xell_launch);
+			}
+		}
+		else
+		{
+			MessageBox(dialog_text_buffer);
+		}
+	}
 
     DbgPrint("Writing syscall 0 backdoor...\n");
     // install the syscall 0 backdoor at a spare place in memory
@@ -526,7 +547,14 @@ void __cdecl main()
 
     Sleep(450);
 
-    buttons[0] = currentLocalisation->yay;
-    wsprintfW(dialog_text_buffer, currentLocalisation->patch_successful, cpu_key_string);
-    MessageBox(dialog_text_buffer);
+	if (has_aurora) {
+		LaunchAurora();
+	}
+	else
+	{
+		buttons[0] = currentLocalisation->yay;
+		wsprintfW(dialog_text_buffer, currentLocalisation->patch_successful, cpu_key_string);
+		MessageBox(dialog_text_buffer);
+	}
+
 }
